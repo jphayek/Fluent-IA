@@ -7,12 +7,8 @@ import { MatchModule } from './match/match.module';
 import { SearchModule } from './search/search.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-<<<<<<< HEAD
-import { UsersModule } from './modules/users/users.module';
 import { IaModule } from './ia/ia.module';
-=======
 import { TestEntity } from './test.entity';
->>>>>>> Yves
 
 @Module({
   imports: [
@@ -30,16 +26,12 @@ import { TestEntity } from './test.entity';
       synchronize: true,
       logging: true,
     }),
-<<<<<<< HEAD
-    UsersModule,
-    IaModule
-=======
     TypeOrmModule.forFeature([TestEntity]),
     AuthModule, 
     UsersModule, 
     MatchModule, 
-    SearchModule
->>>>>>> Yves
+    SearchModule,
+    IaModule
   ],
   controllers: [AppController],
   providers: [AppService],

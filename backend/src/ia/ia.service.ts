@@ -29,7 +29,7 @@ export class IaService {
     
     try {
       const response = await axios.post(this.apiUrl, data, { headers });
-      console.log('Response:', response.data);
+      console.log('Response:', response.data.choices[0].message.content);
       return response.data;
     } catch (error) {
       console.error('Error calling OpenRouter API:', error.response?.data || error.message);
