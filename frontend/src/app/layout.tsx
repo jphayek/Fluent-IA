@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+'use client';
+import { ReactNode } from 'react';
 import './globals.css'
 
 const Layout = ({ children }: { children: ReactNode }) => {
