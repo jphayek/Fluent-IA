@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Prestation } from '../prestations/prestation.entity';
 
@@ -10,16 +10,16 @@ export class Organisation {
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column({ nullable: true })
   siret: string;
 
-  @Column()
+  @Column({ nullable: true })
   sector: string;
 
-  @Column()
+  @Column({ nullable: true })
   country: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -40,18 +40,16 @@ export class Organisation {
   @Column({ default: true })
   isActive: boolean;
 
-  // Relation One-to-One avec User (propriétaire)
-  @OneToOne(() => User, user => user.organisation)
-  @JoinColumn()
-  owner: User;
-
-  // Relation One-to-Many avec Prestations
-  @OneToMany(() => Prestation, prestation => prestation.organisation, { cascade: true })
-  prestations: Prestation[];
-
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Relations
+  @ManyToOne(() => User, user => user.organisations, { nullable: true })
+  owner: User;
+
+  @OneToMany(() => Prestation, prestation => prestation.organisation)
+  prestations: Prestation[];
 }

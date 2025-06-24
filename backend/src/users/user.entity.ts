@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Organisation } from '../organisations/organisation.entity';
 import { Tag } from '../tags/tag.entity';
 
@@ -37,9 +37,15 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  // Relation One-to-One avec Organisation
-  @OneToOne(() => Organisation, organisation => organisation.owner, { nullable: true })
-  organisation: Organisation;
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  // Relations
+  @OneToMany(() => Organisation, organisation => organisation.owner)
+  organisations: Organisation[];
 
   // Relation Many-to-Many avec Tags
   @ManyToMany(() => Tag, tag => tag.users)
@@ -49,10 +55,4 @@ export class User {
     inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' }
   })
   tags: Tag[];
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

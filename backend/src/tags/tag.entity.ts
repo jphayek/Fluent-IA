@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../users/user.entity';
 
 @Entity('tags')
@@ -13,15 +13,18 @@ export class Tag {
   description: string;
 
   @Column({ nullable: true })
-  color: string; // Couleur hex pour l'affichage
+  category: string;
 
-  @Column({ default: 0 })
-  usageCount: number; // Nombre d'utilisateurs qui utilisent ce tag
+  @Column({ default: true })
+  isActive: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   // Relation Many-to-Many avec Users
   @ManyToMany(() => User, user => user.tags)
   users: User[];
-
-  @CreateDateColumn()
-  createdAt: Date;
 }

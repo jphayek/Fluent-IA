@@ -16,24 +16,27 @@ export class Prestation {
   price: number;
 
   @Column({ nullable: true })
-  duration: string; // Ex: "1 heure", "1 jour", "1 semaine"
+  duration: string;
 
   @Column({ nullable: true })
-  category: string; // Ex: "Développement", "Design", "Consultation"
+  category: string;
 
   @Column({ default: true })
   isActive: boolean;
 
   @Column({ type: 'simple-array', nullable: true })
-  tags: string[]; // Tags spécifiques à cette prestation
-
-  // Relation Many-to-One avec Organisation
-  @ManyToOne(() => Organisation, organisation => organisation.prestations, { onDelete: 'CASCADE' })
-  organisation: Organisation;
+  tags: string[];
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Relation Many-to-One avec Organisation (optionnelle)
+  @ManyToOne(() => Organisation, organisation => organisation.prestations, { 
+    onDelete: 'CASCADE',
+    nullable: true 
+  })
+  organisation: Organisation;
 }
