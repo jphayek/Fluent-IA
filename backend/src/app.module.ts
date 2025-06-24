@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
+import { IaModule } from './ia/ia.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { UsersModule } from './modules/users/users.module';
       synchronize: true, // À désactiver en production
       logging: true,
     }),
-    UsersModule
+    UsersModule,
+    IaModule
   ],
   controllers: [AppController],
   providers: [AppService],
