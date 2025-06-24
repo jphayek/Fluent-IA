@@ -1,6 +1,6 @@
-import { Controller, Post, Body, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserRole } from '../users/user-role';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -8,21 +8,85 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: { username: string; password: string }) {
-    const user = await this.authService.validateUser(body.username, body.password);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
-    return this.authService.login(user);
+    try {
+      const user = await this.authService.validateUser(body.username, body.password);
+      
+      if (!user) {
+        return {
+          success: false,
+          message: 'Nom d\'utilisateur ou mot de passe incorrect'
+        };
+      }
+
+      const loginResult = await this.authService.login(user);
+      
+      return {
+        success: true,
+        message: 'Connexion réussie',
+        data: loginResult
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la connexion'
+      };
+    }
   }
 
   @Post('register')
-  async register(@Body() body: { username: string; password: string; role: string }) {
-    const validRoles: UserRole[] = ['Graphiste', 'Développeur', 'Monteur'];
+  async register(@Body() registerDto: RegisterDto) {
+    const role = registerDto.role || 'Développeur';
+    
+    try {
+      const user = await this.authService.register(
+        registerDto.username,
+        registerDto.password,
+        role,
+        registerDto.firstName,
+        registerDto.lastName,
+        registerDto.email
+      );
 
-    if (!validRoles.includes(body.role as UserRole)) {
-      throw new BadRequestException('Role invalide');
+      const { password, ...userWithoutPassword } = user;
+      
+      return {
+        success: true,
+        message: 'Utilisateur créé avec succès',
+        data: userWithoutPassword
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Erreur lors de la création du compte'
+      };
     }
+  }
 
-    const role = body.role as UserRole;
+  @Post('validate')
+  async validatePassword(@Body() body: { username: string; password: string }) {
+    try {
+      const user = await this.authService.validateUser(body.username, body.password);
+      
+      if (!user) {
+        return {
+          success: false,
+          message: 'Nom d\'utilisateur ou mot de passe incorrect',
+          valid: false
+        };
+      }
 
-    return this.authService.register(body.username, body.password, role);
+      return {
+        success: true,
+        message: 'Utilisateur validé',
+        valid: true,
+        data: user
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la validation',
+        valid: false
+      };
+    }
   }
 }

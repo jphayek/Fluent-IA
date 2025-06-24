@@ -5,9 +5,14 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { MatchModule } from './match/match.module';
 import { SearchModule } from './search/search.module';
+import { OrganisationModule } from './organisations/organisation.module'; // Changé ici
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TestEntity } from './test.entity';
+import { User } from './users/user.entity';
+import { Organisation } from './organisations/organisation.entity';
+import { Prestation } from './prestations/prestation.entity';
+import { Tag } from './tags/tag.entity';
 
 @Module({
   imports: [
@@ -21,7 +26,7 @@ import { TestEntity } from './test.entity';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'root',
       database: process.env.DB_NAME || 'fluent_ia',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      entities: [TestEntity, User, Organisation, Prestation, Tag],
       synchronize: true,
       logging: true,
     }),
@@ -29,7 +34,8 @@ import { TestEntity } from './test.entity';
     AuthModule, 
     UsersModule, 
     MatchModule, 
-    SearchModule
+    SearchModule,
+    OrganisationModule // Changé ici
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,7 +17,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch('http://localhost:3001/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ const LoginPage = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.access_token);
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
         setError(data.message || 'Erreur de connexion');
       }
