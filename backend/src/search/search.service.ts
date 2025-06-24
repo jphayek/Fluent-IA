@@ -1,41 +1,90 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { User } from '../users/user.entity'; 
+import { OrganisationService } from '../organisations/organisation.service'; // ✅ Service
 
 @Injectable()
 export class SearchService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private organisationService: OrganisationService, // ✅ Service injecté
+  ) {}
 
-  private keywordRoleMap = new Map<string, string>([
-    ['logo', 'Graphiste'],
-    ['burger', 'Graphiste'],
-    ['site', 'Développeur'],
-    ['développer', 'Développeur'],
-    ['monter', 'Monteur'],
-    ['vidéo', 'Monteur'],
-  ]);
-
-  findProfilesByText(text: string): User[] {
-    const lowerText = text.toLowerCase();
-
-    const matchedRoles = new Set<string>();
-    for (const [keyword, role] of this.keywordRoleMap.entries()) {
-      if (lowerText.includes(keyword)) {
-        matchedRoles.add(role);
+  async searchUsers(query: string): Promise<any[]> {
+    const results: any[] = [];
+    
+    try {
+      const userByUsername = await this.usersService.findByUsername(query);
+      if (userByUsername) {
+        const { password, ...userWithoutPassword } = userByUsername;
+        results.push(userWithoutPassword);
       }
-    }
 
-    if (matchedRoles.size === 0) {
+      const userByEmail = await this.usersService.findByEmail(query);
+      if (userByEmail && !results.find(u => u.id === userByEmail.id)) {
+        const { password, ...userWithoutPassword } = userByEmail;
+        results.push(userWithoutPassword);
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Erreur lors de la recherche d\'utilisateurs:', error);
       return [];
     }
+  }
 
-    const results: User[] = [];
-    for (const role of matchedRoles) {
-      results.push(...this.usersService.findByRole(role));
+  async searchByRole(role: string): Promise<any[]> {
+    try {
+      const users = await this.usersService.findByRole(role);
+      return users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+    } catch (error) {
+      console.error('Erreur lors de la recherche par rôle:', error);
+      return [];
     }
+  }
 
-    const uniqueResults = Array.from(new Map(results.map(u => [u.id, u])).values());
+  async searchOrganisations(query: string): Promise<any[]> {
+    const results: any[] = [];
+    
+    try {
+      const orgsBySector = await this.organisationService.findBySector(query);
+      results.push(...orgsBySector);
 
-    return uniqueResults;
+      const orgsByCountry = await this.organisationService.findByCountry(query);
+      orgsByCountry.forEach(org => {
+        if (!results.find(r => r.id === org.id)) {
+          results.push(org);
+        }
+      });
+
+      return results;
+    } catch (error) {
+      console.error('Erreur lors de la recherche d\'organisations:', error);
+      return [];
+    }
+  }
+
+  async globalSearch(query: string): Promise<any> {
+    try {
+      const [users, organisations] = await Promise.all([
+        this.searchUsers(query),
+        this.searchOrganisations(query)
+      ]);
+
+      return {
+        users,
+        organisations,
+        total: users.length + organisations.length
+      };
+    } catch (error) {
+      console.error('Erreur lors de la recherche globale:', error);
+      return {
+        users: [],
+        organisations: [],
+        total: 0
+      };
+    }
   }
 }

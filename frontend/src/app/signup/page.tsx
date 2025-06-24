@@ -6,6 +6,9 @@ import Link from 'next/link';
 const SignupPage = () => {
   const [formData, setFormData] = useState({
     username: '',
+    firstName: '',
+    lastName: '',
+    email: '',
     password: '',
     confirmPassword: '',
     role: 'Développeur'
@@ -23,6 +26,8 @@ const SignupPage = () => {
     'Data Scientist'
   ];
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -36,13 +41,16 @@ const SignupPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/users', {
+      const response = await fetch(`${API_URL}/auth/register`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           username: formData.username,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
           password: formData.password,
           role: formData.role
         }),
@@ -50,10 +58,13 @@ const SignupPage = () => {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (data.success) {
         setSuccess('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
         setFormData({
           username: '',
+          firstName: '',
+          lastName: '',
+          email: '',
           password: '',
           confirmPassword: '',
           role: 'Développeur'
@@ -134,6 +145,65 @@ const SignupPage = () => {
             </div>
           </div>
 
+          <div style={styles.twoColumns}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Prénom</label>
+              <div style={styles.inputWrapper}>
+                <svg style={styles.inputIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  placeholder="Votre prénom"
+                  style={styles.input}
+                  required
+                />
+              </div>
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Nom</label>
+              <div style={styles.inputWrapper}>
+                <svg style={styles.inputIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="Votre nom"
+                  style={styles.input}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Email</label>
+            <div style={styles.inputWrapper}>
+              <svg style={styles.inputIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="votre.email@exemple.com"
+                style={styles.input}
+                required
+              />
+            </div>
+          </div>
+
           <div style={styles.inputGroup}>
             <label style={styles.label}>Rôle professionnel</label>
             <div style={styles.inputWrapper}>
@@ -171,6 +241,7 @@ const SignupPage = () => {
                 placeholder="Créez un mot de passe sécurisé"
                 style={styles.input}
                 required
+                minLength={6}
               />
             </div>
           </div>
@@ -191,6 +262,7 @@ const SignupPage = () => {
                 placeholder="Confirmez votre mot de passe"
                 style={styles.input}
                 required
+                minLength={6}
               />
             </div>
           </div>
@@ -270,7 +342,7 @@ const styles = {
     borderRadius: '24px',
     padding: '3rem',
     width: '100%',
-    maxWidth: '480px',
+    maxWidth: '520px', // Légèrement plus large pour les deux colonnes
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
     position: 'relative' as const,
@@ -321,6 +393,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1.5rem',
+  },
+  twoColumns: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem',
   },
   errorAlert: {
     background: '#fee2e2',
