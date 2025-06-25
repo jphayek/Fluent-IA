@@ -1,10 +1,18 @@
-'use client';
-import { ReactNode } from 'react';
+import type { Metadata } from 'next'
 import './globals.css'
 
-const Layout = ({ children }: { children: ReactNode }) => {
+export const metadata: Metadata = {
+  title: 'Fluent IA',
+  description: 'Plateforme d\'intelligence artificielle moderne',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body style={{margin: 0, padding: 0, width: '100%'}}>
         {/* Header */}
         <header style={styles.header}>
@@ -334,5 +342,3 @@ const styles = {
     transition: 'color 0.2s ease',
   },
 };
-
-export default Layout;

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -9,16 +9,23 @@ export class AuthController {
   @Post('login')
   async login(@Body() body: { username: string; password: string }) {
     try {
+      console.log('🔐 Tentative de connexion pour:', body.username);
+      
       const user = await this.authService.validateUser(body.username, body.password);
       
       if (!user) {
-        return {
-          success: false,
-          message: 'Nom d\'utilisateur ou mot de passe incorrect'
-        };
+        throw new HttpException(
+          {
+            success: false,
+            message: 'Nom d\'utilisateur ou mot de passe incorrect'
+          },
+          HttpStatus.UNAUTHORIZED
+        );
       }
 
       const loginResult = await this.authService.login(user);
+      
+      console.log('✅ Connexion réussie pour:', body.username);
       
       return {
         success: true,
@@ -26,18 +33,28 @@ export class AuthController {
         data: loginResult
       };
     } catch (error) {
-      return {
-        success: false,
-        message: 'Erreur lors de la connexion'
-      };
+      console.error('❌ Erreur lors de la connexion:', error);
+      
+      if (error.status) {
+        throw error;
+      }
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Erreur lors de la connexion'
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    const role = registerDto.role || 'Développeur';
-    
     try {
+      console.log('📝 Tentative d\'inscription pour:', registerDto.username);
+      
+      const role = registerDto.role || 'Développeur';
+      
       const user = await this.authService.register(
         registerDto.username,
         registerDto.password,
@@ -49,16 +66,33 @@ export class AuthController {
 
       const { password, ...userWithoutPassword } = user;
       
+      console.log('✅ Inscription réussie pour:', registerDto.username);
+      
       return {
         success: true,
         message: 'Utilisateur créé avec succès',
         data: userWithoutPassword
       };
     } catch (error) {
-      return {
-        success: false,
-        message: error.message || 'Erreur lors de la création du compte'
-      };
+      console.error('❌ Erreur lors de l\'inscription:', error);
+      
+      if (error.status === 409) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message
+          },
+          HttpStatus.CONFLICT
+        );
+      }
+      
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message || 'Erreur lors de la création du compte'
+        },
+        HttpStatus.BAD_REQUEST
+      );
     }
   }
 

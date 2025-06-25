@@ -1,29 +1,38 @@
-import { Injectable, ConflictException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByUsername(username);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user;
-      return result;
+  async validateUser(username: string, password: string): Promise<any> {
+    try {
+      const user = await this.userRepository.findOne({ 
+        where: { username },
+        relations: ['organisations', 'tags']
+      });
+      
+      if (user && await bcrypt.compare(password, user.password)) {
+        const { password: _, ...result } = user;
+        return result;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      return null;
     }
-    return null;
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.id, role: user.role };
     return {
-      access_token: this.jwtService.sign(payload),
       user: user,
+      message: 'Connexion réussie'
     };
   }
 
@@ -33,20 +42,38 @@ export class AuthService {
     role: string,
     firstName: string,
     lastName: string,
-    email: string,
-  ) {
+    email: string
+  ): Promise<User> {
     try {
-      // Utiliser la méthode 'create' du UsersService
-      return await this.usersService.create({
+      // Vérifier si l'utilisateur existe déjà
+      const existingUserByEmail = await this.userRepository.findOne({ where: { email } });
+      if (existingUserByEmail) {
+        throw new ConflictException('Un utilisateur avec cet email existe déjà');
+      }
+
+      const existingUserByUsername = await this.userRepository.findOne({ where: { username } });
+      if (existingUserByUsername) {
+        throw new ConflictException('Ce nom d\'utilisateur est déjà pris');
+      }
+
+      // Hasher le mot de passe
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Créer le nouvel utilisateur
+      const newUser = this.userRepository.create({
         username,
-        password,
-        role,
         firstName,
         lastName,
         email,
+        password: hashedPassword,
+        role,
+        isActive: true,
       });
+
+      return await this.userRepository.save(newUser);
     } catch (error) {
-      // Propager l'erreur du UsersService
+      console.error('Erreur lors de l\'inscription:', error);
       throw error;
     }
   }

@@ -3,12 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module'; // ✅ Import AuthModule
 import { PrestationModule } from './prestations/prestation.module';
 import { OrganisationModule } from './organisations/organisation.module';
 import { Prestation } from './prestations/prestation.entity';
 import { Organisation } from './organisations/organisation.entity';
 import { User } from './users/user.entity';
-import { Tag } from './tags/tag.entity'; // ✅ Ajout de Tag
+import { Tag } from './tags/tag.entity';
 
 @Module({
   imports: [
@@ -22,10 +23,11 @@ import { Tag } from './tags/tag.entity'; // ✅ Ajout de Tag
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'root',
       database: process.env.DB_NAME || 'fluent_ia',
-      entities: [Prestation, Organisation, User, Tag], // ✅ Tag ajouté
+      entities: [Prestation, Organisation, User, Tag],
       synchronize: true,
       logging: false,
     }),
+    AuthModule, // ✅ AuthModule doit être ici
     PrestationModule,
     OrganisationModule,
   ],

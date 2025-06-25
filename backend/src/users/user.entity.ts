@@ -47,7 +47,6 @@ export class User {
   @OneToMany(() => Organisation, organisation => organisation.owner)
   organisations: Organisation[];
 
-  // Relation Many-to-Many avec Tags
   @ManyToMany(() => Tag, tag => tag.users)
   @JoinTable({
     name: 'user_tags',
