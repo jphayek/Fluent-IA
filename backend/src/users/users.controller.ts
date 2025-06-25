@@ -263,7 +263,7 @@ export class UsersController {
     try {
       const user = await this.usersService.findOne(id);
       
-      if (!user.organisation) {
+      if (!user.organisations || user.organisations.length === 0) {
         return {
           success: false,
           message: 'Cet utilisateur n\'a pas d\'organisation',
@@ -273,8 +273,8 @@ export class UsersController {
 
       return {
         success: true,
-        message: 'Organisation de l\'utilisateur récupérée avec succès',
-        data: user.organisation
+        message: 'Organisations de l\'utilisateur récupérées avec succès',
+        data: user.organisations
       };
     } catch (error) {
       throw new HttpException(

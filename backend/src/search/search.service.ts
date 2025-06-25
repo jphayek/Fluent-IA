@@ -50,10 +50,10 @@ export class SearchService {
     
     try {
       const orgsBySector = await this.organisationService.findBySector(query);
-      results.push(...orgsBySector);
+      results.push(...orgsBySector.data);
 
       const orgsByCountry = await this.organisationService.findByCountry(query);
-      orgsByCountry.forEach(org => {
+      orgsByCountry.data.forEach(org => {
         if (!results.find(r => r.id === org.id)) {
           results.push(org);
         }

@@ -1,48 +1,39 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { TestEntity } from './test.entity';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    @InjectRepository(TestEntity)
-    private testRepository: Repository<TestEntity>,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
 
-  @Get('test-db')
-  async testDatabase(): Promise<any> {
-    try {
-      // Créer un enregistrement de test
-      const testRecord = this.testRepository.create({
-        message: 'Connexion à fluent_ia réussie !',
-      });
-      await this.testRepository.save(testRecord);
+  @Get('health')
+  getHealth() {
+    return {
+      status: 'OK',
+      message: 'Fluent IA Backend is running',
+      timestamp: new Date().toISOString(),
+      database: 'fluent_ia',
+      version: '1.0.0',
+    };
+  }
 
-      // Compter les enregistrements
-      const count = await this.testRepository.count();
-
-      return {
-        status: 'success',
-        message: `Connexion à la base de données fluent_ia réussie !`,
-        recordsCount: count,
-        database: 'fluent_ia',
-        user: 'postgres',
-      };
-    } catch (error) {
-      return {
-        status: 'error',
-        message: `Erreur de connexion : ${error.message}`,
-        database: 'fluent_ia',
-        user: 'postgres',
-      };
-    }
+  @Get('info')
+  getInfo() {
+    return {
+      app: 'Fluent IA Backend',
+      description:
+        "API pour la plateforme de mise en relation freelances/organisations",
+      endpoints: [
+        "GET / - Message d'accueil",
+        'GET /health - Status de santé',
+        "GET /info - Informations sur l'API",
+        'GET /prestations - Liste des prestations',
+        'GET /organisations - Liste des organisations',
+      ],
+    };
   }
 }

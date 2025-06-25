@@ -137,8 +137,6 @@ export class UsersService {
       throw new NotFoundException(`Utilisateur avec l'ID ${userId} non trouvé`);
     }
 
-    // Ici vous pourrez ajouter la logique pour les tags quand l'entité Tag sera prête
-    // Pour l'instant, on retourne juste l'utilisateur
     return user;
   }
 }

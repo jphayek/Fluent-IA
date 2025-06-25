@@ -7,7 +7,7 @@ async function bootstrap() {
   
   // Configuration CORS
   app.enableCors({
-    origin: ['http://localhost:3000'], // Frontend sur port 3000
+    origin: ['http://localhost:3000', 'http://localhost:3002'], 
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -19,7 +19,8 @@ async function bootstrap() {
     transform: true,
   }));
   
-  await app.listen(3001); // ✅ Changé de 3000 à 3001
-  console.log('Backend NestJS running on http://localhost:3000');
+  await app.listen(3001);
+  console.log('🚀 Backend NestJS running on http://localhost:3001');
+  console.log('📊 Données de test automatiquement chargées');
 }
 bootstrap();
