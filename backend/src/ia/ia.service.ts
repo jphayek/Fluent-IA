@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { Prestation } from 'src/prestations/prestation.entity';
+import { PrestationService } from 'src/prestations/prestation.service';
 
 @Injectable()
 export class IaService {
   private readonly apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private readonly apiKey = process.env.IA_API_KEY;
   private userDemand = "";
+
+  constructor(private readonly prestationService: PrestationService) {}
 
   async generateText(prompt: string) {
     const headers = {
@@ -14,7 +18,7 @@ export class IaService {
     };
 
     const data = {
-      model: 'mistralai/mistral-small-3.2-24b-instruct:free',
+      model: 'deepseek/deepseek-r1-0528:free',
       messages: [
         {
           role: 'user',
@@ -30,7 +34,6 @@ export class IaService {
 
     try {
       const response = await axios.post(this.apiUrl, data, { headers });
-      console.log('Response:', response.data.choices[0].message.content);
       return response.data;
     } catch (error) {
       console.error('Error calling OpenRouter API:', error.response?.data || error.message);
@@ -38,30 +41,97 @@ export class IaService {
     }
   }
 
-  async getPrestations(userRequest: string, organisations: any[], prestations: any[]) {
-    console.log(userRequest, organisations, prestations);
+  async getPrestations(userRequest: string) {
+    const prestations = (await this.prestationService.findAll()).data;
+    const prestationsHumaines = prestations.filter(prestations => prestations.serviceParIa != true);
+
     this.userDemand = userRequest;
     const prompt = `
-      L'utilisateur demande un type de service. Voici les détails de l'organisation et des prestations disponibles :
+Ta tâche est d’identifier les prestations les plus pertinentes pour une demande utilisateur.
 
-      Organisations :
-      ${organisations.map(org => `- ${org.nom} : [id: ${org.id}, nom: ${org.nom}, secteur: ${org.secteur}, pays: ${org.pays}, description: ${org.description}, prestations: [${org.prestations.map(presta => `${presta}`).join(', ')}]]`).join('\n')}
+Voici la liste des prestations disponibles :
+${prestationsHumaines.map(prestation => `{
+  id: ${prestation.id},
+  titre: "${prestation.title}",
+  categorie: "${prestation.category}",
+  description: "${prestation.description}",
+  tags: [${prestation.tags}],
+  actif: ${prestation.isActive},
+  prix: ${prestation.price}
+}`).join(',\n')}
 
-      Prestations :
-      ${prestations.map(prestation => `- ${prestation.nom} : [id: ${prestation.id}, nom: ${prestation.nom}, descriptif: ${prestation.descriptif}, localisation: ${prestation.localisation}, physique: ${prestation.physique}, tags: [${prestation.tags.map(tag => `${tag}`).join(', ')}]]`).join('\n')}
+Demande utilisateur :
+"${userRequest}"
 
-      Utilisateur : ${userRequest}
+Réponds uniquement avec une liste des IDs des prestations les plus pertinentes sous le format suivant :
+[1, 2, 3]
 
-      Réponds avec une liste de prestations pertinentes pour la demande de l'utilisateur.
-      Tu me répondra au format UNIQUEMENT sous le format [prestationID, ...]
-    `;
+Si aucune prestation n’est pertinente, réponds simplement :
+[]
+
+N’ajoute aucun texte explicatif.
+`;
 
     const response = await this.generateText(prompt);
-    return response.choices[0].message.content;
+
+    const listIds = JSON.parse(response.choices[0].message.content);
+    let responsePrestations : Prestation[] = [];
+    for (let i=0; i < listIds.length; i++) {
+      const prestation = (await this.prestationService.findOne(listIds[i])).data;
+      if (prestation) {
+        responsePrestations.push(prestation);
+      }
+    }
+    const finalResponse = {
+      humaines: responsePrestations,
+      ia: await this.isServiceIaCompatible(userRequest)
+    };
+    console.log('Final Response:', finalResponse);
+    return finalResponse;
+  }
+
+  async isServiceIaCompatible(userRequest: string) {
+    const prestations = (await this.prestationService.findAll()).data;
+    const prestationsIa = prestations.filter(prestations => prestations.serviceParIa);
+
+    const prompt = `
+    Ta tâche est d’identifier les prestations compatibles avec la demande de l'utilisateur.
+    
+    Voici la liste des prestations :
+    ${prestationsIa.map(prestation => `{
+      id: ${prestation.id},
+      titre: "${prestation.title}",
+      categorie: "${prestation.category}",
+      description: "${prestation.description}",
+      tags: [${prestation.tags}],
+      actif: ${prestation.isActive},
+      prix: ${prestation.price}
+    }`).join(',\n')}
+    
+    Demande utilisateur :
+    "${userRequest}"
+    
+    Réponds uniquement avec une liste des IDs des prestations pertinentes, sous le format :
+    [1, 2]
+    
+    Sinon, réponds :
+    []
+    `;
+    
+    const response = await this.generateText(prompt);
+    const listIds = JSON.parse(response.choices[0].message.content);
+    let responsePrestations : Prestation[] = []
+    for (let i=0; i < listIds.length; i++) {
+      const prestation = (await this.prestationService.findOne(listIds[i])).data;
+      if (prestation) {
+        responsePrestations.push(prestation);
+      }
+    }
+
+    return responsePrestations;
   }
 
   async generateForm() {
-    console.log(this.userDemand);
     const prompt = `
       L'utilisateur à fais une demande de prestation :
       ${this.userDemand}

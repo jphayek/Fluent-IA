@@ -27,6 +27,9 @@ export class Prestation {
   @Column({ type: 'simple-array', nullable: true })
   tags: string[];
 
+  @Column({ default: false})
+  serviceParIa: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

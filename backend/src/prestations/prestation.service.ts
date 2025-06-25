@@ -38,6 +38,7 @@ export class PrestationService implements OnModuleInit {
           duration: "3-5 jours",
           tags: ["logo", "branding", "design", "identité visuelle", "vectoriel"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Développement site web vitrine",
@@ -47,6 +48,7 @@ export class PrestationService implements OnModuleInit {
           duration: "2-3 semaines", 
           tags: ["site web", "responsive", "cms", "seo", "hébergement"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Application mobile e-commerce",
@@ -56,6 +58,7 @@ export class PrestationService implements OnModuleInit {
           duration: "6-8 semaines",
           tags: ["mobile", "ecommerce", "ios", "android", "paiement", "native"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Montage vidéo professionnel",
@@ -65,6 +68,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1-2 semaines",
           tags: ["montage", "vidéo", "post-production", "effets", "color grading"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Dashboard analytics avancé",
@@ -74,6 +78,7 @@ export class PrestationService implements OnModuleInit {
           duration: "2-3 semaines",
           tags: ["dashboard", "analytics", "data", "visualisation", "rapports"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Stratégie marketing digital",
@@ -83,6 +88,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1-2 semaines",
           tags: ["marketing", "digital", "seo", "publicité", "réseaux sociaux"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Rédaction contenu web SEO",
@@ -92,6 +98,7 @@ export class PrestationService implements OnModuleInit {
           duration: "3-5 jours",
           tags: ["rédaction", "seo", "contenu", "copywriting", "blog"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Interface utilisateur moderne",
@@ -101,6 +108,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1-2 semaines",
           tags: ["ui", "ux", "interface", "design", "prototype", "figma"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Bot Discord personnalisé",
@@ -110,6 +118,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1 semaine",
           tags: ["bot", "discord", "automation", "modération", "api"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Audit cybersécurité complet",
@@ -119,6 +128,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1-2 semaines",
           tags: ["sécurité", "audit", "pentesting", "cybersécurité", "vulnérabilités"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Formation développement React",
@@ -128,15 +138,7 @@ export class PrestationService implements OnModuleInit {
           duration: "4 semaines",
           tags: ["formation", "react", "javascript", "développement", "certification"],
           isActive: true,
-        },
-        {
-          title: "Traduction technique multilingue",
-          description: "Traduction professionnelle de documentation technique, sites web et applications en 10+ langues par des experts natifs.",
-          category: "Traduction",
-          price: 35.00,
-          duration: "1-3 jours",
-          tags: ["traduction", "technique", "multilingue", "documentation", "localisation"],
-          isActive: true,
+          serviceParIa: false
         },
         {
           title: "Consultation stratégie IT",
@@ -146,6 +148,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1-2 jours",
           tags: ["consultation", "stratégie", "it", "infrastructure", "conseil"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "API REST sécurisée",
@@ -155,6 +158,7 @@ export class PrestationService implements OnModuleInit {
           duration: "1-3 semaines",
           tags: ["api", "rest", "backend", "jwt", "swagger", "tests"],
           isActive: true,
+          serviceParIa: false
         },
         {
           title: "Animation 3D personnalisée",
@@ -164,6 +168,17 @@ export class PrestationService implements OnModuleInit {
           duration: "2-4 semaines",
           tags: ["animation", "3d", "rendu", "modeling", "motion graphics"],
           isActive: true,
+          serviceParIa: false
+        },
+        {
+          title: "Traduction technique multilingue",
+          description: "Traduction de language par IA.",
+          category: "Traduction",
+          price: 35.00,
+          duration: "Instantané",
+          tags: ["traduction", "technique", "multilingue", "documentation", "localisation"],
+          isActive: true,
+          serviceParIa: true
         }
       ];
 
