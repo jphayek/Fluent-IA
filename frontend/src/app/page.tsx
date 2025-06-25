@@ -1,146 +1,65 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [prestations, setPrestations] = useState([]);
 
   // Base de données d'agents IA simulée
-  const aiAgents = [
-    {
-      id: 1,
-      name: "DesignMaster AI",
-      type: "Agent de Design",
-      speciality: "Logos & Branding",
-      rating: 4.9,
-      price: "€50-200",
-      avatar: "🎨",
-      description: "Expert en création de logos et identités visuelles",
-      keywords: ['logo', 'design', 'graphique', 'branding', 'visuel', 'identité'],
-      portfolio: ["Logo Tech", "Branding Startup", "UI Mobile"],
-      availability: "Disponible maintenant"
-    },
-    {
-      id: 2,
-      name: "CodeCraft AI",
-      type: "Agent Développeur",
-      speciality: "Applications Web",
-      rating: 4.9,
-      price: "€200-800",
-      avatar: "💻",
-      description: "Développement d'applications web performantes",
-      keywords: ['site', 'web', 'application', 'développer', 'programmer', 'code', 'app'],
-      portfolio: ["E-commerce Platform", "SaaS Dashboard", "Portfolio Site"],
-      availability: "Disponible maintenant"
-    },
-    {
-      id: 3,
-      name: "Video Wizard",
-      type: "Agent Vidéo",
-      speciality: "Montage & Animation",
-      rating: 4.8,
-      price: "€100-500",
-      avatar: "🎬",
-      description: "Expert en montage vidéo et animations",
-      keywords: ['vidéo', 'montage', 'animation', 'film', 'clip', 'motion'],
-      portfolio: ["Pub TV", "Video Corporate", "Animation 3D"],
-      availability: "Disponible maintenant"
-    },
-    {
-      id: 4,
-      name: "Creative Genius",
-      type: "Agent Graphique",
-      speciality: "Interface Design",
-      rating: 4.8,
-      price: "€80-300",
-      avatar: "✨",
-      description: "Spécialisé dans les interfaces modernes et UX",
-      keywords: ['interface', 'ui', 'ux', 'design', 'app', 'mobile', 'utilisateur'],
-      portfolio: ["App E-commerce", "Dashboard Analytics", "Site Portfolio"],
-      availability: "2h de délai"
-    },
-    {
-      id: 5,
-      name: "DataViz Master",
-      type: "Agent Data",
-      speciality: "Analyse & Visualisation",
-      rating: 4.9,
-      price: "€150-600",
-      avatar: "📊",
-      description: "Analyse de données et création de dashboards",
-      keywords: ['données', 'data', 'analyse', 'statistiques', 'dashboard', 'reporting'],
-      portfolio: ["Dashboard Sales", "Report Analytics", "Data Mining"],
-      availability: "30 min de délai"
-    },
-    {
-      id: 6,
-      name: "Mobile Maker",
-      type: "Agent Mobile",
-      speciality: "Apps iOS/Android",
-      rating: 4.7,
-      price: "€300-1200",
-      avatar: "📱",
-      description: "Création d'applications mobiles natives",
-      keywords: ['mobile', 'app', 'ios', 'android', 'smartphone', 'application'],
-      portfolio: ["App Fitness", "App Banking", "Game Mobile"],
-      availability: "1 jour de délai"
-    },
-    {
-      id: 7,
-      name: "AI Content Writer",
-      type: "Agent Rédaction",
-      speciality: "Contenu & Copywriting",
-      rating: 4.6,
-      price: "€30-150",
-      avatar: "✍️",
-      description: "Rédaction de contenu optimisé et copywriting",
-      keywords: ['contenu', 'rédaction', 'texte', 'article', 'copywriting', 'écriture'],
-      portfolio: ["Articles Blog", "Pages Vente", "Posts Social"],
-      availability: "Disponible maintenant"
-    },
-    {
-      id: 8,
-      name: "SEO Optimizer",
-      type: "Agent SEO",
-      speciality: "Référencement Web",
-      rating: 4.7,
-      price: "€100-400",
-      avatar: "🔍",
-      description: "Optimisation SEO et stratégies de référencement",
-      keywords: ['seo', 'référencement', 'google', 'optimisation', 'trafic', 'visibilité'],
-      portfolio: ["Audit SEO", "Stratégie Content", "Link Building"],
-      availability: "Disponible maintenant"
-    }
-  ];
+  useEffect(() => {
+    const fetchPrestations = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/prestations');
+        const data = await response.json();
+        console.log(data.data)
+        setPrestations(data.data);
+        setResults(data.data); // Affiche tout par défaut si besoin
+      } catch (error) {
+        console.error('Erreur lors du chargement des prestations :', error);
+      }
+    };
 
-  const handleSearch = (query) => {
+    fetchPrestations();
+  }, []);
+
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
     setIsSearching(true);
 
     setTimeout(() => {
       if (query.trim() === '') {
-        setResults([]);
+        setResults(prestations);
       } else {
-        // Recherche intelligente dans les agents IA
-        const filteredAgents = aiAgents.filter(agent => {
-          const searchTerms = query.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+        const filtered = prestations.filter((p) => {
           return (
-            agent.name.toLowerCase().includes(searchTerms) ||
-            agent.type.toLowerCase().includes(searchTerms) ||
-            agent.speciality.toLowerCase().includes(searchTerms) ||
-            agent.description.toLowerCase().includes(searchTerms) ||
-            agent.keywords.some(keyword => 
-              keyword.toLowerCase().includes(searchTerms) ||
-              searchTerms.includes(keyword.toLowerCase())
-            )
+            p.title?.toLowerCase().includes(lowerQuery) ||
+            p.description?.toLowerCase().includes(lowerQuery) ||
+            p.category?.toLowerCase().includes(lowerQuery) ||
+            (p.tags && p.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery)))
           );
         });
-        setResults(filteredAgents);
+        setResults(filtered);
       }
       setIsSearching(false);
     }, 300);
+  };
+
+  const getAvatar = (category: string) => {
+    const map: Record<string, string> = {
+      design: '🎨',
+      développement: '💻',
+      vidéo: '🎬',
+      ui: '✨',
+      data: '📊',
+      mobile: '📱',
+      rédaction: '✍️',
+      seo: '🔍',
+    };
+    return map[category?.toLowerCase()] || '🤖';
   };
 
   return (
@@ -216,25 +135,25 @@ const HomePage = () => {
             {results.map((agent) => (
               <div key={agent.id} style={styles.agentCard}>
                 <div style={styles.agentHeader}>
-                  <div style={styles.agentAvatar}>{agent.avatar}</div>
-                  <div style={styles.agentInfo}>
-                    <h3 style={styles.agentName}>{agent.name}</h3>
-                    <p style={styles.agentType}>{agent.type}</p>
-                    <p style={styles.agentSpecialty}>{agent.speciality}</p>
-                  </div>
-                  <div style={styles.agentRating}>
-                    <span style={styles.ratingStars}>⭐</span>
-                    <span style={styles.ratingScore}>{agent.rating}</span>
-                  </div>
+                <div style={styles.agentAvatar}>{getAvatar(agent.category)}</div>
+                <div style={styles.agentInfo}>
+                  <h3 style={styles.agentName}>{agent.title}</h3>
+                  <p style={styles.agentType}>{agent.category}</p>
+                  <p style={styles.agentSpecialty}>{agent.speciality || 'Compétence'}</p>
+                </div>
+                <div style={styles.agentRating}>
+                  <span style={styles.ratingStars}>⭐</span>
+                  <span style={styles.ratingScore}>{agent.rating || '4.8'}</span>
+                </div>
                 </div>
 
                 <p style={styles.agentDescription}>{agent.description}</p>
 
                 <div style={styles.agentPortfolio}>
-                  <p style={styles.portfolioTitle}>Portfolio :</p>
+                  <p style={styles.portfolioTitle}>Tags :</p>
                   <div style={styles.portfolioTags}>
-                    {agent.portfolio.map((item, index) => (
-                      <span key={index} style={styles.portfolioTag}>
+                    {agent.tags.map((item) => (
+                      <span key={item} style={styles.portfolioTag}>
                         {item}
                       </span>
                     ))}
