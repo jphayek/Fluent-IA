@@ -99,7 +99,7 @@ const SignupPage = () => {
         <div className={styles.header}>
           <h1 className={styles.title}>
             Créer un compte
-            <span className={styles.titleAccent}> Fluent IA</span>
+            <span className={styles.titleAccent}> Prestify</span>
           </h1>
           <p className={styles.description}>
             Rejoignez la communauté et explorez le futur de l'IA

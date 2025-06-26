@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Fluent IA',
+  title: 'Prestify',
   description: 'Plateforme d\'intelligence artificielle moderne',
 }
 
@@ -25,7 +25,7 @@ export default function RootLayout({
                     <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none"/>
                   </svg>
                 </div>
-                <h1 style={styles.title}>Fluent IA</h1>
+                <h1 style={styles.title}>Prestify</h1>
               </div>
             </div>
             
@@ -63,7 +63,7 @@ export default function RootLayout({
                       <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none"/>
                     </svg>
                   </div>
-                  <span style={styles.footerTitle}>Fluent IA</span>
+                  <span style={styles.footerTitle}>Prestify</span>
                 </div>
                 <p style={styles.footerDescription}>
                   Révolutionnez votre workflow avec l'intelligence artificielle. 

@@ -58,7 +58,7 @@ const LoginPage = () => {
                 <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none"/>
               </svg>
             </div>
-            <h1 style={styles.title}>Fluent IA</h1>
+            <h1 style={styles.title}>Prestify</h1>
           </div>
           <h2 style={styles.subtitle}>Connexion</h2>
           <p style={styles.description}>
