@@ -118,6 +118,7 @@ N’ajoute aucun texte explicatif.
     `;
     
     const response = await this.generateText(prompt);
+    console.log("Réponse de l'IA pour les prestations IA", response), response.choices[0].message.content;
     const listIds = JSON.parse(response.choices[0].message.content);
     let responsePrestations : Prestation[] = []
     for (let i=0; i < listIds.length; i++) {
@@ -167,6 +168,7 @@ Réponds uniquement la structure du formulaire sous le format suivant :
 N’ajoute aucun texte explicatif.`
 
     const response = await this.generateText(prompt);
+    console.log(response.choices[0].message.content)
     return {
       prestationIa: id,
       form: JSON.parse(response.choices[0].message.content)
@@ -174,6 +176,7 @@ N’ajoute aucun texte explicatif.`
   }
 
 async makePrestation(id: string, form: Record<string, any>) {
+  console.log("début de la prestation", id, form);
   const prestationIa = (await this.prestationService.findOne(Number(id))).data;
 
   if (!prestationIa) {
@@ -196,8 +199,10 @@ N’ajoute aucun texte introductif ou explicatif, uniquement le résultat final.
   `;
 
   const response = await this.generateText(prompt);
-
-  return response.choices?.[0]?.message?.content;
+  console.log("réponse de l'IA", response.choices[0].message.content);
+  return {
+    response: response.choices?.[0]?.message?.content
+  };
 }
 
 

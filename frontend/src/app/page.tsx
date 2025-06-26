@@ -17,6 +17,9 @@ const HomePage = () => {
   const [formulaireReady, setFormulaireReady] = useState(false);
   const [formulaireIa, setFormulaireIa] = useState();
   const [responseFormulaireReady, setResponseFormulaireReady] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
+  const [isServiceRunning, setIsServiceRunning] = useState(false);
+  const [responseFormulaire, setResponseFormulaire] = useState('');
 
   // Base de données d'agents IA simulée
   useEffect(() => {
@@ -109,6 +112,7 @@ const HomePage = () => {
       return acc;
     }, {});
   
+    setIsServiceRunning(true);
     try {
       const response = await fetch(`http://localhost:3001/ia/prestations/${selectedIaService}`, {
         method: 'POST',
@@ -117,10 +121,14 @@ const HomePage = () => {
         },
         body: JSON.stringify({ form: payload }),
       });
-  
+      setIsServiceRunning(false);
       const data = await response.json();
-      } catch (error) {
+      console.log("data : ", data);
+      setResponseFormulaire(data.response);
+      setResponseFormulaireReady(true);
+    } catch (error) {
       console.error("Erreur lors de l'envoi du formulaire :", error);
+      setIsServiceRunning(false);
     }
   };
 
@@ -381,6 +389,7 @@ const HomePage = () => {
                     style={{ cursor: 'pointer' }}
                     onClick={async () => {
                       try {
+                        setIsFormLoading(true);
                         const response = await fetch(`http://localhost:3001/ia/form/${service.id}`);
                         const formData = await response.json();
                       
@@ -389,6 +398,7 @@ const HomePage = () => {
                           value: '',
                         }));
                       
+                        setIsFormLoading(false);
                         setSelectedIaService(service.id);
                         setFormulaireIa(enrichedForm);
                         setFormulaireReady(true);
@@ -396,6 +406,7 @@ const HomePage = () => {
                       } catch (error) {
                         console.error('Erreur lors de la récupération du formulaire :', error);
                         setResponseFormulaireReady(false);
+                        setIsFormLoading(false);
                       }
                     }}                  
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
@@ -409,62 +420,132 @@ const HomePage = () => {
             </div>
             )}
 
-            {(formulaireReady && formulaireIa) && (<div>
-              <h4 style={{color: 'black'}}>Formulaire</h4>
-              <form
-                onSubmit={sendFormulaireIA}
-                style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
-              >
-                {formulaireIa.map((field, index) => {
-                  if (field.type === 'textarea') {
-                    return (
-                      <div key={index}>
-                        <label style={{color: 'black'}}>{field.label}</label>
-                        <textarea
-                          name={field.name}
-                          value={field.value}
-                          onChange={(e) => handleFormChange(index, e.target.value)}
-                          rows={4}
-                        />
-                      </div>
-                    );
-                  } else if (field.type === 'select') {
-                    return (
-                      <div key={index}>
-                        <label style={{color: 'black'}}>{field.label}</label>
-                        <select
-                          name={field.name}
-                          value={field.value}
-                          onChange={(e) => handleFormChange(index, e.target.value)}
-                        >
-                          {field.options.map((option, optIndex) => (
-                            <option key={optIndex} value={option.value}>{option.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div key={index}>
-                        <label style={{color: 'black'}}>{field.label}</label>
-                        <input
-                          name={field.name}
-                          value={field.value}
-                          onChange={(e) => handleFormChange(index, e.target.value)}
-                        />
-                      </div>
-                    );
-                  }
-                })}
-                <button type="submit">Soumettre</button>
-              </form>
-            </div>
+            {isFormLoading && (
+              <div style={styles.loadingText}>
+                Chargement du formulaire en cours
+                <span style={styles.dots}>...</span>
+              </div>
+            )}
+
+            {(formulaireReady && formulaireIa) && (
+              <div style={{ marginTop: '2rem' }}>
+                <h4 style={{ color: '#111827', fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>📝 Remplir le formulaire</h4>
+
+                <form
+                  onSubmit={sendFormulaireIA}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.5rem',
+                    backgroundColor: '#f9fafb',
+                    padding: '2rem',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  }}
+                >
+                  {formulaireIa.map((field, index) => {
+                    const commonStyle = {
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      fontSize: '1rem',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      backgroundColor: '#ffffff',
+                      color: '#111827',
+                      outline: 'none',
+                      transition: 'border-color 0.2s ease',
+                    };
+                  
+                    const labelStyle = {
+                      marginBottom: '0.5rem',
+                      color: '#374151',
+                      fontWeight: '500',
+                      fontSize: '0.95rem',
+                    };
+                  
+                    if (field.type === 'textarea') {
+                      return (
+                        <div key={index} style={{ display: 'flex', flexDirection: 'column' }}>
+                          <label style={labelStyle}>{field.label}</label>
+                          <textarea
+                            name={field.name}
+                            value={field.value}
+                            onChange={(e) => handleFormChange(index, e.target.value)}
+                            rows={4}
+                            style={commonStyle}
+                          />
+                        </div>
+                      );
+                    } else if (field.type === 'select') {
+                      return (
+                        <div key={index} style={{ display: 'flex', flexDirection: 'column' }}>
+                          <label style={labelStyle}>{field.label}</label>
+                          <select
+                            name={field.name}
+                            value={field.value}
+                            onChange={(e) => handleFormChange(index, e.target.value)}
+                            style={commonStyle}
+                          >
+                            {field.options.map((option, optIndex) => (
+                              <option key={optIndex} value={option.value}>
+                                {option.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div key={index} style={{ display: 'flex', flexDirection: 'column' }}>
+                          <label style={labelStyle}>{field.label}</label>
+                          <input
+                            type={field.type}
+                            name={field.name}
+                            value={field.value}
+                            onChange={(e) => handleFormChange(index, e.target.value)}
+                            style={commonStyle}
+                          />
+                        </div>
+                      );
+                    }
+                  })}
+
+                  <button
+                    type="submit"
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1e40af')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                  >
+                    ✅ Soumettre
+                  </button>
+                </form>
+              </div>
+            )}
+
+
+            {isServiceRunning && (
+              <div style={styles.loadingText}>
+                Prestation en cours
+                <span style={styles.dots}>...</span>
+              </div>
             )}
 
             {responseFormulaireReady && (
-              <p>
-                {responseFormulaireReady}
-              </p>
+              <div>
+                <h4 style={{ color: 'black', marginTop: '1rem' }}>Résultat de la prestation :</h4>
+                <p style={{ color: 'black'}}>{responseFormulaire}</p>
+              </div>
             )}
 
             <div style={{ textAlign: 'right', marginTop: '1rem' }}>
@@ -919,6 +1000,8 @@ const styles = {
     padding: '2rem',
     width: '90%',
     maxWidth: '1000px',
+    maxHeight: '600px',
+    overflowY: 'auto',
     boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
     textAlign: 'left',
   },
@@ -929,6 +1012,71 @@ const styles = {
     fontSize: '20px',
     cursor: 'pointer',
     marginBottom: 'auto'
+  },
+  formWrapper: {
+    maxWidth: '600px',
+    margin: '2rem auto',
+    padding: '2rem',
+    background: 'white',
+    borderRadius: '16px',
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+  },
+  formTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1.5rem',
+    color: '#1f2937',
+    textAlign: 'center',
+  },
+  formGroup: {
+    marginBottom: '1.5rem',
+  },
+  formLabel: {
+    display: 'block',
+    marginBottom: '0.5rem',
+    color: '#374151',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+  },
+  formInput: {
+    width: '100%',
+    padding: '0.75rem 1rem',
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    fontSize: '1rem',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    transition: 'border-color 0.3s ease',
+  },
+  submitButton: {
+    width: '100%',
+    padding: '0.75rem 1rem',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: '600',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    transition: 'background 0.3s ease',
+  },
+  loadingText: {
+    textAlign: 'center' as const,
+    fontSize: '1rem',
+    fontWeight: '500',
+    color: '#6b7280',
+    marginTop: '1rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '0.25rem',
+  },
+  dots: {
+    display: 'inline-block',
+    animation: 'ellipsis 1.4s infinite steps(4, end)',
+    width: '1em',
+    overflow: 'hidden',
+    verticalAlign: 'bottom',
   }
 };
 
