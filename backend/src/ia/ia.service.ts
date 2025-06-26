@@ -86,7 +86,6 @@ N’ajoute aucun texte explicatif.
       humaines: responsePrestations,
       ia: await this.isServiceIaCompatible(userRequest)
     };
-    console.log('Final Response:', finalResponse);
     return finalResponse;
   }
 
@@ -131,33 +130,52 @@ N’ajoute aucun texte explicatif.
     return responsePrestations;
   }
 
-  async generateForm() {
-    const prompt = `
-      L'utilisateur à fais une demande de prestation :
-      ${this.userDemand}
+  async generateForm(id: string) {
+    
+    const prestationIa = (await this.prestationService.findOne(Number(id))).data;
+    
+    const prompt =`
+Ta tâche est de créer un formulaire demandant uniquement les informations nécessaires pour réaliser la prestation suivante et répondre à la demande de l'utilisateur.
 
-      Génère un formulaire dynamique demandant les informations nécessaires pour répondre à la problématique de l'utilisateur. Par exemple, pour un logo, demande des informations sur les couleurs, les formes, etc.
-      Tu me répondra UNIQUEMENT sous le format JSON comme l'exemple suivant :  
-      [{
-        type: "text",
-        name: "couleur",
-        label: "Couleur"
+Voici la prestation à réaliser :
+  titre: "${prestationIa.title}",
+  categorie: "${prestationIa.category}",
+  description: "${prestationIa.description}",
+
+Demande utilisateur :
+  "${this.userDemand}"
+
+Réponds uniquement la structure du formulaire sous le format suivant :
+[{
+    type: "text",
+    name: "couleur",
+    label: "Couleur"
+  }, {
+    type: "select",
+    name: "forme",
+    label: "Forme",
+    options: [{
+        name: "Rond",
+        value: "rond",
       }, {
-        type: "select",
-        name: "forme",
-        label: "Forme",
-        options: [{
-            name: "Rond",
-            value: "rond",
-          }, {
-            name: "Carré",
-            value: "carre"
-          }
-        ]
-      }]
-    `;
+        name: "Carré",
+        value: "carre"
+      }
+    ]
+}]
+    
+N’ajoute aucun texte explicatif.`
 
     const response = await this.generateText(prompt);
-    return response.choices[0].message.content;
+    return {
+      prestationIa: id,
+      form: JSON.parse(response.choices[0].message.content)
+    };
+  }
+
+  async makePrestation(id: string, form: string) {
+    // Récupération de la prestation via son ID
+    // Exécution de la prestation avec les données du formulaire via un prompt
+    // Renvoi de la réponse à l'utilisateur sous le format string
   }
 }

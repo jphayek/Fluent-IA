@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { IaModule } from './ia/ia.module';
-import { AuthModule } from './auth/auth.module'; // ✅ Import AuthModule
+import { AuthModule } from './auth/auth.module';
 import { PrestationModule } from './prestations/prestation.module';
 import { OrganisationModule } from './organisations/organisation.module';
 import { Prestation } from './prestations/prestation.entity';
@@ -28,7 +28,7 @@ import { Tag } from './tags/tag.entity';
       synchronize: true,
       logging: false,
     }),
-    AuthModule, // ✅ AuthModule doit être ici
+    AuthModule,
     PrestationModule,
     OrganisationModule,
     IaModule

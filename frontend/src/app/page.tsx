@@ -7,6 +7,16 @@ const HomePage = () => {
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [prestations, setPrestations] = useState([]);
+  const [showChat, setShowChat] = useState(false);
+  const [demande, setDemande] = useState('');
+  const [humanServices, setHumanServices] = useState([]);
+  const [iaServices, setIaServices] = useState([]);
+  const [waiter, setWaiter] = useState(false);
+  const [selectedIaService, setSelectedIaService] = useState();
+  const [demandeReady, setDemandeReady] = useState(false);
+  const [formulaireReady, setFormulaireReady] = useState(false);
+  const [formulaireIa, setFormulaireIa] = useState();
+  const [responseFormulaireReady, setResponseFormulaireReady] = useState(false);
 
   // Base de données d'agents IA simulée
   useEffect(() => {
@@ -14,7 +24,6 @@ const HomePage = () => {
       try {
         const response = await fetch('http://localhost:3001/prestations');
         const data = await response.json();
-        console.log(data.data)
         setPrestations(data.data);
         setResults(data.data); // Affiche tout par défaut si besoin
       } catch (error) {
@@ -62,18 +71,71 @@ const HomePage = () => {
     return map[category?.toLowerCase()] || '🤖';
   };
 
+  const sendDemande = async () => {
+    if (!demande.trim()) return;
+    try {
+      setWaiter(true);
+      const response = await fetch('http://localhost:3001/ia/prestations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userRequest : demande}),
+      });
+      const data = await response.json();
+      setWaiter(false);
+      setHumanServices(data.humaines || []);
+      setIaServices(data.ia || []);
+      setDemandeReady(true);
+    } catch (error) {
+      setWaiter(false);
+      setDemandeReady(false);
+      console.error('Erreur lors de l’envoi de la demande IA:', error);
+    }
+  };
+
+  const handleFormChange = (index: number, value: string) => {
+    const updatedForm = [...formulaireIa];
+    updatedForm[index].value = value;
+    setFormulaireIa(updatedForm);
+  };
+
+  const sendFormulaireIA = async (e) => {
+    e.preventDefault();
+  
+    // Transforme le tableau en objet { name1: value1, name2: value2, ... }
+    const payload = formulaireIa.reduce((acc, field) => {
+      acc[field.name] = field.value;
+      return acc;
+    }, {});
+  
+    try {
+      const response = await fetch(`http://localhost:3001/ia/prestations/${selectedIaService}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ form: payload }),
+      });
+  
+      const data = await response.json();
+      } catch (error) {
+      console.error("Erreur lors de l'envoi du formulaire :", error);
+    }
+  };
+
   return (
     <div style={styles.container}>
       {/* Hero Section */}
       <div style={styles.hero}>
         <h2 style={styles.heroTitle}>
-          Trouvez l'agent IA parfait pour
+          Trouvez la pretation parfaite pour
           <span style={styles.titleGradient}>
             votre projet
           </span>
         </h2>
         <p style={styles.heroSubtitle}>
-          Décrivez votre besoin et découvrez les meilleurs agents IA spécialisés pour vous aider
+          Décrivez votre besoin et découvrez les meilleurs prestations pour vous aider
         </p>
 
         {/* Search Bar */}
@@ -97,6 +159,12 @@ const HomePage = () => {
                 <div style={styles.spinner}></div>
               </div>
             )}
+            <button
+              onClick={() => setShowChat(true)}
+              style={styles.iaChatButton}
+            >
+              💬 IA Chat
+            </button>
           </div>
 
           {/* Suggestions rapides */}
@@ -137,13 +205,9 @@ const HomePage = () => {
                 <div style={styles.agentHeader}>
                 <div style={styles.agentAvatar}>{getAvatar(agent.category)}</div>
                 <div style={styles.agentInfo}>
-                  <h3 style={styles.agentName}>{agent.title}</h3>
+                  <h3 style={styles.agentName}>{agent.title} {agent.serviceParIa ? '(IA Service)' : ''}</h3>
                   <p style={styles.agentType}>{agent.category}</p>
-                  <p style={styles.agentSpecialty}>{agent.speciality || 'Compétence'}</p>
-                </div>
-                <div style={styles.agentRating}>
-                  <span style={styles.ratingStars}>⭐</span>
-                  <span style={styles.ratingScore}>{agent.rating || '4.8'}</span>
+                  <p style={styles.agentSpecialty}>Durée : {agent.duration}</p>
                 </div>
                 </div>
 
@@ -257,6 +321,177 @@ const HomePage = () => {
           </div>
         </>
       )}
+
+      {showChat && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ marginBottom: '1rem', color: 'black' }}>IA Chat</h3>
+              <button style={styles.closebtn}
+                onClick={() => setShowChat(false)}
+              >✖</button>
+            </div>
+            <div>
+              <h4 style={{color: 'black'}}>Bienvenue dans l'assistant IA. Vous pouvez exprimer votre demande ici !</h4>
+              <textarea
+                placeholder="Ex: Je souhaite traduire un texte"
+                rows={4}
+                value={demande}
+                onChange={(e) => setDemande(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  marginTop: '1rem',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                }}
+                readOnly={demandeReady}
+              />
+            </div>
+            
+            {demandeReady && (<div style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ marginBottom: '1rem', color: 'black' }}>💼 Services Humains</h4>
+                {humanServices.length === 0 && <p style={{ color: '#666' }}>Aucun service humain trouvé.</p>}
+                {humanServices.map((service) => (
+                  <div
+                  key={service.id}
+                  style={{
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    backgroundColor: '#eef2ff',
+                    borderRadius: '10px',
+                    border: '1px solid #c7d2fe',
+                  }}
+                >
+                  <h5 style={{ margin: 0, fontWeight: 600, color: 'black' }}>{service.title}</h5>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>{service.description}</p>
+                </div>
+
+                  ))}
+                </div>
+              
+              {/* Services IA */}
+              <div style={{ flex: 1 }}>
+                <h4 style={{ marginBottom: '1rem', color: 'black' }}>🤖 Services IA</h4>
+                {iaServices.length === 0 && <p style={{ color: '#666' }}>Aucun service IA trouvé.</p>}
+                {iaServices.map((service) => (
+                  <div
+                    key={service.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`http://localhost:3001/ia/form/${service.id}`);
+                        const formData = await response.json();
+                      
+                        const enrichedForm = formData.form.map(field => ({
+                          ...field,
+                          value: '',
+                        }));
+                      
+                        setSelectedIaService(service.id);
+                        setFormulaireIa(enrichedForm);
+                        setFormulaireReady(true);
+                        setResponseFormulaireReady(false);
+                      } catch (error) {
+                        console.error('Erreur lors de la récupération du formulaire :', error);
+                        setResponseFormulaireReady(false);
+                      }
+                    }}                  
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                  >
+                    <h5 style={{ margin: 0, fontWeight: 600, color: 'black' }}>{service.title}</h5>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}>{service.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            )}
+
+            {(formulaireReady && formulaireIa) && (<div>
+              <h4 style={{color: 'black'}}>Formulaire</h4>
+              <form
+                onSubmit={sendFormulaireIA}
+                style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+              >
+                {formulaireIa.map((field, index) => {
+                  if (field.type === 'textarea') {
+                    return (
+                      <div key={index}>
+                        <label style={{color: 'black'}}>{field.label}</label>
+                        <textarea
+                          name={field.name}
+                          value={field.value}
+                          onChange={(e) => handleFormChange(index, e.target.value)}
+                          rows={4}
+                        />
+                      </div>
+                    );
+                  } else if (field.type === 'select') {
+                    return (
+                      <div key={index}>
+                        <label style={{color: 'black'}}>{field.label}</label>
+                        <select
+                          name={field.name}
+                          value={field.value}
+                          onChange={(e) => handleFormChange(index, e.target.value)}
+                        >
+                          {field.options.map((option, optIndex) => (
+                            <option key={optIndex} value={option.value}>{option.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={index}>
+                        <label style={{color: 'black'}}>{field.label}</label>
+                        <input
+                          name={field.name}
+                          value={field.value}
+                          onChange={(e) => handleFormChange(index, e.target.value)}
+                        />
+                      </div>
+                    );
+                  }
+                })}
+                <button type="submit">Soumettre</button>
+              </form>
+            </div>
+            )}
+
+            {responseFormulaireReady && (
+              <p>
+                {responseFormulaireReady}
+              </p>
+            )}
+
+            <div style={{ textAlign: 'right', marginTop: '1rem' }}>
+              <div
+                onClick={() => sendDemande()}
+                style={{
+                  background: 'blue',
+                  width: 'fit-content',
+                  height: 'fit-content',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                {waiter ? (
+                  <div style={styles.loadingIcon}>
+                    <div style={styles.spinner}></div>
+                  </div>
+                  ) : ('Envoyer')
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -320,16 +555,12 @@ const styles = {
     fontSize: '16px',
     border: 'none',
     borderRadius: '16px',
-    background: 'white',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     outline: 'none',
     transition: 'all 0.3s ease',
     boxSizing: 'border-box' as const,
   },
   loadingIcon: {
-    position: 'absolute' as const,
-    right: '16px',
-    top: '50%',
     transform: 'translateY(-50%)',
   },
   spinner: {
@@ -655,6 +886,50 @@ const styles = {
     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.3s ease',
   },
+  iaChatButton: {
+    position: 'absolute',
+    right: '8px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'linear-gradient(135deg, #2563eb, #9333ea)',
+    color: 'white',
+    padding: '0.5rem 1rem',
+    border: 'none',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '0.8rem',
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+  },
+  modalContent: {
+    background: '#fff',
+    borderRadius: '12px',
+    padding: '2rem',
+    width: '90%',
+    maxWidth: '1000px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+    textAlign: 'left',
+  },
+  closebtn: {
+    color: 'black',
+    background: 'none',
+    border: 'none',
+    fontSize: '20px',
+    cursor: 'pointer',
+    marginBottom: 'auto'
+  }
 };
 
 export default HomePage;

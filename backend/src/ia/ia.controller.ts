@@ -1,26 +1,26 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { IaService } from './ia.service';
 import { Post } from '@nestjs/common';
 import { Body } from '@nestjs/common';
 
 @Controller('ia')
 export class IaController {
-  constructor(private readonly iaService: IaService) {}
+  constructor(
+    private readonly iaService: IaService) {}
 
   @Post('prestations')
   async getPrestations(@Body() body: { userRequest: string }) {
-    console.log("Body :", body, body.userRequest)
     const responsePrestations = await this.iaService.getPrestations(body.userRequest);
     return responsePrestations;
   }
 
-  @Get('form')
-  async generateForm() {
-    return this.iaService.generateForm();
+  @Get('form/:id')
+  async generateForm(@Param('id') id: string) {
+    return await this.iaService.generateForm(id);
   }
 
-  /*@Post('generate')
-  async generateDemand(@Body body: { prestation: any }) {
-    return this.iaService;
-  }*/
+  @Post('prestations/:id')
+  async executePrestation(@Param('id') id: string, @Body() body: { form: string }) {
+    return await this.iaService.makePrestation(id, body.form);
+  }
 }
