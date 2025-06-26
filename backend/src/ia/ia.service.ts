@@ -173,9 +173,32 @@ N’ajoute aucun texte explicatif.`
     };
   }
 
-  async makePrestation(id: string, form: string) {
-    // Récupération de la prestation via son ID
-    // Exécution de la prestation avec les données du formulaire via un prompt
-    // Renvoi de la réponse à l'utilisateur sous le format string
+async makePrestation(id: string, form: Record<string, any>) {
+  const prestationIa = (await this.prestationService.findOne(Number(id))).data;
+
+  if (!prestationIa) {
+    throw new Error(`Prestation avec l'id ${id} introuvable`);
   }
+
+  const prompt = `
+Tu es un assistant IA. Ta tâche est de réaliser la prestation suivante en te basant sur les informations fournies par l'utilisateur via un formulaire.
+
+Prestation :
+Titre : ${prestationIa.title}
+Catégorie : ${prestationIa.category}
+Description : ${prestationIa.description}
+
+Données du formulaire utilisateur :
+${Object.entries(form).map(([key, value]) => `${key} : ${value}`).join('\n')}
+
+Réalise la prestation et retourne uniquement le résultat sous forme de texte.
+N’ajoute aucun texte introductif ou explicatif, uniquement le résultat final.
+  `;
+
+  const response = await this.generateText(prompt);
+
+  return response.choices?.[0]?.message?.content;
+}
+
+
 }

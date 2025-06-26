@@ -1,17 +1,19 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body } from '@nestjs/common';
 import { IaService } from './ia.service';
-import { Post } from '@nestjs/common';
-import { Body } from '@nestjs/common';
 
 @Controller('ia')
 export class IaController {
-  constructor(
-    private readonly iaService: IaService) {}
+  constructor(private readonly iaService: IaService) {}
 
   @Post('prestations')
   async getPrestations(@Body() body: { userRequest: string }) {
-    const responsePrestations = await this.iaService.getPrestations(body.userRequest);
-    return responsePrestations;
+    try {
+      const responsePrestations = await this.iaService.getPrestations(body.userRequest);
+      return responsePrestations;
+    } catch (err) {
+      console.error('❌ Erreur dans getPrestations:', err);
+      throw err;
+    }
   }
 
   @Get('form/:id')
@@ -20,7 +22,10 @@ export class IaController {
   }
 
   @Post('prestations/:id')
-  async executePrestation(@Param('id') id: string, @Body() body: { form: string }) {
+  async executePrestation(
+    @Param('id') id: string,
+    @Body() body: { form: Record<string, any> }
+  ) {
     return await this.iaService.makePrestation(id, body.form);
   }
 }
